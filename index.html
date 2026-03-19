@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics Maturity Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 110%, rgba(139,92,246,0.1) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .shell { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .header { text-align: center; margin-bottom: 56px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);
+    color: var(--accent); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 6px 14px; border-radius: 100px; margin-bottom: 20px;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 800;
+    line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 14px;
+    background: linear-gradient(135deg, #e2e8f0 30%, #3b82f6 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: var(--muted); font-size: 15px; font-weight: 300; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+  .progress-wrap { margin-bottom: 40px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .progress-bar-bg { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; margin-bottom: 24px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .section:hover { border-color: rgba(59,130,246,0.3); }
+  .section-header {
+    padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255,255,255,0.025), transparent);
+  }
+  .section-left { flex: 1; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .section-weight { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent2); }
+  .section-score-pill {
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2);
+    color: var(--accent); padding: 4px 14px; border-radius: 100px; white-space: nowrap; transition: all 0.3s;
+  }
+  .section-score-pill.filled { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: var(--success); }
+
+  .question-list { padding: 0; }
+  .question-item {
+    padding: 18px 24px; border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px; transition: background 0.15s;
+  }
+  .question-item:last-child { border-bottom: none; }
+  .question-item:hover { background: rgba(255,255,255,0.018); }
+  .q-row { display: flex; align-items: flex-start; gap: 12px; }
+  .q-num {
+    font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px;
+    white-space: nowrap; margin-top: 2px; flex-shrink: 0;
+  }
+  .q-text { font-size: 14px; font-weight: 400; line-height: 1.55; color: var(--text); flex: 1; }
+  .q-note { font-size: 12px; color: var(--muted); font-style: italic; padding-left: 36px; line-height: 1.5; }
+  .q-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  .rating { display: flex; gap: 8px; padding-left: 36px; align-items: center; }
+  .rating-opt { display: none; }
+  .rating-label {
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--muted);
+    transition: all 0.15s; user-select: none;
+  }
+  .rating-label:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.08); }
+  .rating-opt:checked + .rating-label { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 12px rgba(59,130,246,0.4); }
+
+  .rating-legend {
+    display: flex; gap: 16px; padding: 12px 24px; background: var(--surface2);
+    border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: white; }
+
+  .submit-wrap { text-align: center; margin-top: 32px; }
+  .submit-btn {
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: white; border: none; padding: 14px 48px; border-radius: 10px;
+    cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
+    box-shadow: 0 4px 24px rgba(59,130,246,0.3);
+  }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59,130,246,0.4); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .submit-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  #results { display: none; }
+  .results-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 40px; text-align: center; margin-bottom: 32px;
+  }
+  .score-ring-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 24px; }
+  .score-ring-wrap svg { transform: rotate(-90deg); }
+  .score-ring-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+  .score-ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1); }
+  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num {
+    font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .score-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .score-grade { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .score-tagline { font-size: 14px; color: var(--muted); }
+
+  .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .breakdown-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; }
+  .bc-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .bc-weight { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .bc-bar-bg { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 8px; overflow: hidden; }
+  .bc-bar-fill { height: 100%; border-radius: 2px; transition: width 1s cubic-bezier(0.4,0,0.2,1) 0.3s; }
+  .bc-score { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+  .bc-max { font-size: 12px; color: var(--muted); }
+
+  .recs-section { margin-bottom: 32px; }
+  .recs-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+  .rec-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; display: flex; gap: 14px; align-items: flex-start; }
+  .rec-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .rec-section-name { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 4px; }
+  .rec-text { font-size: 14px; line-height: 1.55; color: var(--text); }
+
+  .name-input-wrap { max-width: 400px; margin: 0 auto 36px; text-align: left; }
+  .name-input-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); display: block; margin-bottom: 8px; }
+  .name-input {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 12px 16px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--accent); }
+  .name-input::placeholder { color: var(--muted); }
+
+  .save-banner {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .save-banner-text strong { font-family: 'Syne', sans-serif; font-size: 15px; display: block; margin-bottom: 3px; }
+  .save-banner-text span { color: var(--muted); font-size: 12px; }
+  .save-btn {
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: white; border: none; padding: 11px 28px; border-radius: 9px;
+    cursor: pointer; letter-spacing: 0.03em; transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+    display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .save-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(16,185,129,0.4); }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .save-status { font-size: 12px; margin-top: 6px; min-height: 16px; }
+  .save-status.ok { color: var(--success); }
+  .save-status.err { color: var(--danger); }
+  .save-status.info { color: var(--muted); }
+
+  .restart-btn {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    background: transparent; border: 1.5px solid var(--border); color: var(--muted);
+    padding: 10px 28px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .restart-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+
+  @media (max-width: 600px) {
+    .rating { gap: 5px; }
+    .rating-label { width: 32px; height: 32px; font-size: 12px; }
+    .section-header { flex-direction: column; gap: 8px; }
+    .save-banner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SURVEY -->
+  <div id="survey">
+    <div class="header">
+      <div class="badge"><span class="badge-dot"></span>Community of Practice</div>
+      <h1>Analytics Maturity Assessment</h1>
+      <p class="subtitle">Rate each statement from 1 (not at all) to 5 (fully in place) to evaluate your team's analytics maturity.</p>
+    </div>
+
+    <div class="name-input-wrap">
+      <label class="name-input-label" for="respondent-name">Your name / team</label>
+      <input class="name-input" id="respondent-name" type="text" placeholder="e.g. Ana – Value Stream 3" maxlength="80" autocomplete="off">
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progress-text">0 of 37 answered</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <form id="survey-form"></form>
+
+    <div class="submit-wrap">
+      <button class="submit-btn" id="submit-btn" type="button" onclick="submitSurvey()" disabled>View Results →</button>
+      <div class="submit-note">Answer all questions to unlock results</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+
+    <div class="save-banner">
+      <div class="save-banner-text">
+        <strong>💾 Save your results</strong>
+        <span>Send your responses to the shared Google Sheet so the team can track progress over time.</span>
+      </div>
+      <div>
+        <button class="save-btn" id="save-btn" onclick="sendToSheets()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Save to Google Sheets
+        </button>
+        <div class="save-status" id="save-status"></div>
+      </div>
+    </div>
+
+    <div class="results-card">
+      <div class="score-ring-wrap">
+        <svg viewBox="0 0 160 160" width="160" height="160">
+          <circle class="score-ring-bg" cx="80" cy="80" r="65"/>
+          <circle class="score-ring-fill" id="score-ring" cx="80" cy="80" r="65"
+            stroke-dasharray="408.41" stroke-dashoffset="408.41"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-num" id="total-score">0</div>
+          <div class="score-label">/ 100</div>
+        </div>
+      </div>
+      <div class="score-grade" id="score-grade"></div>
+      <div class="score-tagline" id="score-tagline"></div>
+    </div>
+
+    <div class="breakdown-grid" id="breakdown-grid"></div>
+
+    <div class="recs-section">
+      <div class="recs-title">💡 Recommendations</div>
+      <div id="recs-list"></div>
+    </div>
+
+    <div class="results-actions">
+      <button class="restart-btn" onclick="restartSurvey()">← Retake Survey</button>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─────────────────────────────────────────────────────────────
+//  ⚙️  STEP 1: Paste your Apps Script Web App URL here
+// ─────────────────────────────────────────────────────────────
+const SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxHZCBhLFMgduInQJYYS4z7EEgqdzS4qP9hwmFRIyTQaWE9pyKeMQovGEsAsKhFF7T1/exec";
+// ─────────────────────────────────────────────────────────────
+
+const SECTIONS = [
+  {
+    id: "knowing", title: "Knowing the Data", weight: 0.15, color: "#3b82f6",
+    subcategories: [
+      { name: "Data sources & pipeline", questions: [
+        { text: "Are data sources needed to report on all OKR ingested in Snowflake?" },
+        { text: "Is there a digital measurement plan for all online user flows the DPF is responsible for?" }
+      ]},
+      { name: "Trust and reliability", questions: [
+        { text: "Is data validation and reconciliation with source systems done for every data source in Snowflake necessary to compute Key Results?" },
+        { text: "Are discrepancies with source data logged, monitored, and resolved?" }
+      ]}
+    ]
+  },
+  {
+    id: "structuring", title: "Structuring the Data", weight: 0.15, color: "#06b6d4",
+    subcategories: [
+      { name: "dbt layers / architecture", questions: [
+        { text: "Is the data model created in dbt using a defined architecture?", note: "Consider if the dbt model has a clearly defined staging-intermediate-marts structure." },
+        { text: "Is the DRY principle applied?", note: "Are data models modular and reusable, with no duplicated logic across models?" },
+        { text: "Are data models version controlled and in a Git repo?" },
+        { text: "Are data models documented?", note: "Think about model and column level descriptions in dbt yml files, readme files or wiki pages." }
+      ]},
+      { name: "Testing & quality checks", questions: [
+        { text: "Are dbt models tested?", note: "There are several tests available in dbt to ensure data quality and completeness." },
+        { text: "Is there an alerting system in place that notifies your team promptly when data pipelines fail?" }
+      ]}
+    ]
+  },
+  {
+    id: "defining", title: "Defining the Data", weight: 0.10, color: "#8b5cf6",
+    subcategories: [
+      { name: "Metrics", questions: [
+        { text: "Are metrics definitions reviewed and validated by business teams (CCO/EET)?" },
+        { text: "Are Objectives and Key Results defined and validated by the Management team (CCO/EET)?" },
+        { text: "Are baselines and targets defined for every Key Result?" }
+      ]}
+    ]
+  },
+  {
+    id: "creating", title: "Creating Value", weight: 0.20, color: "#10b981",
+    subcategories: [
+      { name: "OKR support", questions: [
+        { text: "Can Key Results easily be translated into business value?" },
+        { text: "Are the values of Key Results entered in AHA supported by dashboards?" },
+        { text: "Are Key Results and actuals vs. targets reviewed regularly by PM and DA?", note: "For instance, once a month." }
+      ]},
+      { name: "Self-service BI", questions: [
+        { text: "Are there data models suited for self-service analytics (one column per metric/dimension)?" },
+        { text: "Do PMs and other stakeholders have the tools to answer basic data questions by themselves?", note: "These tools could include access to self-service analytics tables, or a trained LLM network." }
+      ]}
+    ]
+  },
+  {
+    id: "insights", title: "Turning Data into Insights", weight: 0.20, color: "#f59e0b",
+    subcategories: [
+      { name: "Dashboard quality", questions: [
+        { text: "Are the value stream dashboards automated?" },
+        { text: "Is there a scorecard that includes key results?" },
+        { text: "Are there dashboards that help deep dive into parent metrics (key results) and sub-metrics?" },
+        { text: "Are dashboards documented?", note: "Documentation can exist in the dashboard itself or on value stream wiki pages." }
+      ]},
+      { name: "Actionable insights", questions: [
+        { text: "Are ad-hoc analyses reproducible (including results of non-standard experiments)?" },
+        { text: "Are ad-hoc analyses reviewed before being used to make important business decisions?" },
+        { text: "Are the analyses accessible after the fact?", note: "Results of ad hoc analyses are preferably accessible for other team members or stakeholders on relevant wiki pages." }
+      ]},
+      { name: "Stakeholder communication", questions: [
+        { text: "Are product strategy decisions influenced by data and insights provided by Data Analysts?" },
+        { text: "Do Data Analysts collaborate with Product Managers and other stakeholders to shape the product roadmap?" }
+      ]}
+    ]
+  },
+  {
+    id: "success", title: "Being Set for Success", weight: 0.12, color: "#ec4899",
+    subcategories: [
+      { name: "Working methodology", questions: [
+        { text: "Are there refinement sessions during which the What and Why behind user stories are discussed before working on them?" },
+        { text: "Does the team work in sprints?" },
+        { text: "Are dbt models developed using branching strategies and code reviews?" }
+      ]},
+      { name: "Planning & prioritization", questions: [
+        { text: "Are there sprint planning sessions?" },
+        { text: "Are there sprint review sessions during which DA could present their work (when relevant)?" },
+        { text: "Are there retro sessions organized at least once a quarter to discuss the way of working and iterate on it?" },
+        { text: "Are data analysts involved in reviewing and challenging the OKR and their targets at least once a quarter?" },
+        { text: "Are data analysts involved in reviewing and contributing to business priorities or OKRs to ensure analytics work is aligned with business goals?" }
+      ]},
+      { name: "Backup person", questions: [
+        { text: "Is there a clearly designated person that will back-up data analysts when they are on holiday for more than one week?" },
+        { text: "Do data analysts send a handover email before going on holiday for more than one week?" }
+      ]}
+    ]
+  },
+  {
+    id: "learning", title: "Learning from Experiences", weight: 0.08, color: "#f97316",
+    subcategories: [
+      { name: "Experiments", questions: [
+        { text: "Is there at least one A/B test planned every month?" },
+        { text: "Are data analysts involved in the design and analysis of experiments?" },
+        { text: "Are goal and guardrail metrics specific to the value stream created in GrowthBook?" },
+        { text: "Are advanced settings (conversion windows, outliers, etc.) for GrowthBook metrics explicitly listed and backed by analyses/clear rationale?" },
+        { text: "Are data analysts guiding PMs to do additional experiments based on the outcome of the first experiments?" }
+      ]}
+    ]
+  }
+];
+
+const RATINGS = ["Not at all", "Rarely", "Partially", "Mostly", "Fully"];
+let qIndex = 0;
+const answers = {};
+
+function buildSurvey() {
+  const form = document.getElementById('survey-form');
+  form.innerHTML = '';
+  qIndex = 0;
+  SECTIONS.forEach(sec => {
+    const allQs = sec.subcategories.flatMap(sub => sub.questions.map(q => ({...q, sub: sub.name})));
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.id = `sec-${sec.id}`;
+    let qListHTML = '<div class="question-list">';
+    allQs.forEach((q, qi) => {
+      qIndex++;
+      const qId = `q_${sec.id}_${qi}`;
+      qListHTML += `
+        <div class="question-item">
+          <div class="q-sub">${q.sub}</div>
+          <div class="q-row">
+            <span class="q-num">Q${qIndex}</span>
+            <span class="q-text">${q.text}</span>
+          </div>
+          ${q.note ? `<div class="q-note">${q.note}</div>` : ''}
+          <div class="rating">
+            ${[1,2,3,4,5].map(v => `
+              <input type="radio" name="${qId}" id="${qId}_${v}" value="${v}" class="rating-opt" onchange="onRate('${qId}','${sec.id}')">
+              <label for="${qId}_${v}" class="rating-label" title="${RATINGS[v-1]}">${v}</label>
+            `).join('')}
+          </div>
+        </div>`;
+    });
+    qListHTML += '</div>';
+    sectionEl.innerHTML = `
+      <div class="section-header">
+        <div class="section-left">
+          <div class="section-title">${sec.title}</div>
+          <div class="section-weight">Weight: ${Math.round(sec.weight*100)}% · ${allQs.length} questions</div>
+        </div>
+        <div class="section-score-pill" id="pill-${sec.id}">—</div>
+      </div>
+      ${qListHTML}
+      <div class="rating-legend">
+        ${RATINGS.map((r,i) => `<div class="legend-item"><div class="legend-dot" style="background:${['#ef4444','#f97316','#f59e0b','#3b82f6','#10b981'][i]}">${i+1}</div>${r}</div>`).join('')}
+      </div>`;
+    form.appendChild(sectionEl);
+  });
+}
+
+function onRate(qId, secId) {
+  const val = document.querySelector(`input[name="${qId}"]:checked`)?.value;
+  if (val) answers[qId] = parseInt(val);
+  updateProgress();
+  updateSectionPill(secId);
+}
+
+function updateProgress() {
+  const total = qIndex;
+  const done = Object.keys(answers).length;
+  const pct = Math.round(done / total * 100);
+  document.getElementById('progress-text').textContent = `${done} of ${total} answered`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('submit-btn').disabled = done < total;
+}
+
+function updateSectionPill(secId) {
+  const sec = SECTIONS.find(s => s.id === secId);
+  let idx = 0;
+  const allIds = sec.subcategories.flatMap(sub => sub.questions.map(() => `q_${secId}_${idx++}`));
+  const rated = allIds.filter(id => answers[id]);
+  if (!rated.length) return;
+  const avg = rated.reduce((a,id) => a + answers[id], 0) / allIds.length;
+  const pill = document.getElementById(`pill-${secId}`);
+  pill.textContent = Math.round(avg / 5 * 100) + '%';
+  pill.className = 'section-score-pill filled';
+}
+
+function getSectionScore(sec) {
+  let idx = 0;
+  const allIds = sec.subcategories.flatMap(sub => sub.questions.map(() => `q_${sec.id}_${idx++}`));
+  const sum = allIds.reduce((a, id) => a + (answers[id] || 0), 0);
+  return sum / (allIds.length * 5);
+}
+
+function getGrade(score) {
+  if (score >= 85) return { grade: "Excellent", tagline: "Your analytics practice is highly mature. Keep leading!", color: "#10b981" };
+  if (score >= 70) return { grade: "Strong", tagline: "Solid foundation with room to excel in a few areas.", color: "#3b82f6" };
+  if (score >= 55) return { grade: "Developing", tagline: "Good progress — targeted improvements will have high impact.", color: "#f59e0b" };
+  if (score >= 35) return { grade: "Early Stage", tagline: "Key gaps exist. Prioritise foundational improvements.", color: "#f97316" };
+  return { grade: "Initial", tagline: "Significant investment in analytics maturity is needed.", color: "#ef4444" };
+}
+
+function getRecs(sectionScores) {
+  const recs = {
+    knowing: ["Audit and ingest all OKR-related data sources into Snowflake to close reporting gaps.", "Create and maintain a digital measurement plan covering all user flows your team owns.", "Implement automated data validation pipelines and a discrepancy logging system."],
+    structuring: ["Adopt a strict staging → intermediate → marts dbt architecture for all models.", "Refactor duplicated SQL logic into reusable dbt macros to enforce DRY principles.", "Ensure all dbt models are version-controlled, reviewed via PRs, and documented.", "Add dbt tests and set up pipeline failure alerts."],
+    defining: ["Schedule quarterly metric review sessions with CCO/EET to validate definitions.", "Formalise OKR validation with management sign-off before each planning cycle.", "Ensure every Key Result has a documented baseline and a SMART target."],
+    creating: ["Tie each Key Result to at least one dashboard to make actuals vs. targets visible.", "Run monthly OKR review sessions between PMs and Data Analysts.", "Build wide, denormalised tables optimised for self-service analytics tools."],
+    insights: ["Automate all value stream dashboards and add a centralised scorecard.", "Establish a peer-review checklist for all ad-hoc analyses before sharing.", "Store all analysis results on team wiki pages, especially those driving key decisions.", "Increase data-driven touchpoints with stakeholders to influence product strategy."],
+    success: ["Formalise sprint ceremonies: planning, review, and retrospectives on a regular cadence.", "Enforce branching and code-review workflows for all dbt development.", "Define a backup rotation policy and make pre-holiday handover emails mandatory."],
+    learning: ["Target at least one A/B test per month and document their design in GrowthBook.", "Involve Data Analysts from experiment design through analysis and follow-up.", "Explicitly document GrowthBook metric settings and validate them with analyses."]
+  };
+  const icons = { knowing:"🔍", structuring:"🏗️", defining:"📐", creating:"💎", insights:"📊", success:"🚀", learning:"🧪" };
+  return Object.entries(sectionScores).sort((a,b) => a[1]-b[1]).slice(0,3).map(([id, score]) => {
+    const sec = SECTIONS.find(s => s.id === id);
+    const recIdx = score < 0.4 ? 0 : score < 0.65 ? 1 : 2;
+    return { icon: icons[id], title: sec.title, text: recs[id][recIdx % recs[id].length], score };
+  });
+}
+
+let lastResults = null;
+
+function submitSurvey() {
+  const sectionScores = {};
+  let totalWeighted = 0;
+  SECTIONS.forEach(sec => {
+    const raw = getSectionScore(sec);
+    sectionScores[sec.id] = raw;
+    totalWeighted += raw * sec.weight;
+  });
+  const totalScore = Math.round(totalWeighted * 100);
+  const grade = getGrade(totalScore);
+  const recs = getRecs(sectionScores);
+
+  const sectionsPayload = SECTIONS.map(sec => {
+    let qi = 0;
+    return {
+      id: sec.id, title: sec.title, weight: sec.weight,
+      sectionPct: Math.round(sectionScores[sec.id] * 100),
+      subcategories: sec.subcategories.map(sub => ({
+        name: sub.name,
+        questions: sub.questions.map(q => ({ id: `q_${sec.id}_${qi++}`, text: q.text }))
+      }))
+    };
+  });
+
+  lastResults = {
+    respondentName: document.getElementById('respondent-name').value.trim() || 'Anonymous',
+    totalScore, grade: grade.grade,
+    answers: { ...answers },
+    sections: sectionsPayload,
+    recommendations: recs.map(r => ({ title: r.title, text: r.text }))
+  };
+
+  document.getElementById('survey').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  const ring = document.getElementById('score-ring');
+  ring.style.stroke = grade.color;
+  setTimeout(() => { ring.style.strokeDashoffset = 408.41 - (totalScore / 100) * 408.41; }, 100);
+  document.getElementById('total-score').textContent = totalScore;
+  document.getElementById('score-grade').textContent = grade.grade;
+  document.getElementById('score-grade').style.color = grade.color;
+  document.getElementById('score-tagline').textContent = grade.tagline;
+
+  const grid = document.getElementById('breakdown-grid');
+  grid.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const pct = Math.round(sectionScores[sec.id] * 100);
+    const contrib = Math.round(sectionScores[sec.id] * sec.weight * 100);
+    const card = document.createElement('div');
+    card.className = 'breakdown-card';
+    card.innerHTML = `
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${sec.color};border-radius:14px 14px 0 0"></div>
+      <div class="bc-title">${sec.title}</div>
+      <div class="bc-weight">Weight: ${Math.round(sec.weight*100)}% · Score: ${pct}%</div>
+      <div class="bc-bar-bg"><div class="bc-bar-fill" style="width:0%;background:${sec.color}" data-w="${pct}"></div></div>
+      <div><span class="bc-score" style="color:${sec.color}">${contrib}</span><span class="bc-max"> / ${Math.round(sec.weight*100)} pts</span></div>`;
+    grid.appendChild(card);
+  });
+  setTimeout(() => { document.querySelectorAll('.bc-bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; }); }, 200);
+
+  const recsList = document.getElementById('recs-list');
+  recsList.innerHTML = '';
+  recs.forEach(rec => {
+    const item = document.createElement('div');
+    item.className = 'rec-item';
+    item.innerHTML = `
+      <div class="rec-icon">${rec.icon}</div>
+      <div class="rec-body">
+        <div class="rec-section-name">${rec.title} · ${Math.round(rec.score*100)}%</div>
+        <div class="rec-text">${rec.text}</div>
+      </div>`;
+    recsList.appendChild(item);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function sendToSheets() {
+  const btn = document.getElementById('save-btn');
+  const status = document.getElementById('save-status');
+  if (!SHEETS_WEBHOOK_URL || SHEETS_WEBHOOK_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    status.className = 'save-status err';
+    status.textContent = '⚠️ No webhook URL configured. Open the HTML file and paste your Apps Script URL.';
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Saving…`;
+  status.className = 'save-status info';
+  status.textContent = 'Sending to Google Sheets…';
+  try {
+    await fetch(SHEETS_WEBHOOK_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lastResults)
+    });
+    status.className = 'save-status ok';
+    status.textContent = '✅ Saved! Your response has been recorded.';
+    btn.innerHTML = '✓ Saved';
+  } catch (err) {
+    status.className = 'save-status err';
+    status.textContent = '❌ Save failed. Check the webhook URL and try again.';
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Retry`;
+  }
+}
+
+function restartSurvey() {
+  Object.keys(answers).forEach(k => delete answers[k]);
+  qIndex = 0;
+  buildSurvey();
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('survey').style.display = 'block';
+  document.getElementById('save-status').textContent = '';
+  const btn = document.getElementById('save-btn');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Save to Google Sheets`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildSurvey();
+</script>
+</body>
+</html>
